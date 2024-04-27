@@ -4,12 +4,9 @@ import {createHash} from "node:crypto";
 
 // IMPORTANT: requires Node 20+
 
-// creating a key pair
-//const pair = await createKeyPair();
-const pair = {
-    pk: '9a66c722e1c6eafa29fa2527debc15a70382efd680faf50aae4ba152e1af7851',
-    pub: '02ea5f1687b5a1c1e853c9afd276941edee9a41a100ff898455fef1dc35dce6ff1'
-};
+// creating a random key pair
+// you really may want to run this once, store your private and public keys being generated and use the below with these.
+const pair = await createKeyPair();
 
 // creating an authority as of token-auth described here https://github.com/BennyTheDev/tap-protocol-specs.
 //
@@ -25,8 +22,7 @@ const authResult = await signAuth(
     pair.pub,
     'auth',
     {
-        'name' : 'Some privilege authority',
-        'mutable' : false
+        'name' : 'Some privilege authority'
     },
     Math.random()
 )
@@ -52,6 +48,18 @@ const dmtMintResult = await signDmtMint(
     Math.random()
 )
 
+const signVerificationResult = await signVerification(
+    pair.pk,
+    pair.pub,
+    'e349a9126a9476eb534457a7e78c748aeca67ec4d53fa9f0772408fb7233a9fei0',
+    'cea505f61f375ea2d8ea56f593e6b436f963753616c2095e755cb5ca4a6df85c',
+    'super collection',
+    111,
+    'tb1pltn4mqlpxxswxhmkj2ejdd0z98v74nr0xxdresvwvp5cyvctm0zs3m750l',
+    Math.random()
+)
+
+
 // creating a random pair for demonstration.
 // in a production environment, the authority stores its private key at a safe place and signs
 // the messages on demand.
@@ -66,6 +74,9 @@ console.log(mintResult);
 
 console.log('####### CREATE DMT MINT RESULT ########');
 console.log(dmtMintResult);
+
+console.log('####### CREATE VERIFICATION RESULT ########');
+console.log(signVerificationResult);
 
 /**
  * Generates a random keypair
@@ -229,6 +240,75 @@ async function signDmtMint(privKey, pubKey, ticker, block, dependency, address, 
     const test_msgHash = sha256(test_proto.p + '-' + test_proto.op + '-' + test_proto.tick + '-' + test_proto.blk + '-' + test_proto.dep + '-' + test_proto.prv.address + '-' + test_proto.prv.salt);
     const isValid = secp.verify(signature, test_msgHash, pubKey);
     let test = new secp.Signature(BigInt(proto.prv.sig.r), BigInt(proto.prv.sig.s), parseInt(proto.prv.sig.v));
+
+    return {
+        test : {
+            valid : isValid,
+            pub : Buffer.from(pubKey).toString('hex'),
+            pubRecovered : test.recoverPublicKey(msgHash).toHex()
+        },
+        result : JSON.stringify(proto)
+    }
+}
+
+/**
+ * Create signed inscription texts for general-purpose file hashes (sha256).
+ * These types of inscriptions enable authorities to verify file hashes of any file type like images, videos, etc.
+ * The inscriptions can be traded or being used to track valid assets (for example valid ordinals).
+ *
+ * By inscribing a signed verification, the address given owns the provenance and can use the tap protocol to prove that an authority granted its privilege.
+ * An authority should either be the issuer of the files or acts in the issuer's behalf.
+ * Therefore, an issuer should point to the ordinals id of the authority through offchain methods (socials, project website, chats, etc).
+ *
+ * Since this is a collection driven approach, a collection name and a sequence have to be passed.
+ * The collection name may consist of up to 512 symbols (as of unicode).
+
+ * The sequence must be an unsigned integer and may be arbitrary but not larger than 9007199254740991.
+ * It is recommended to use the sequence number for collectible IDs. If every hash being issued is unique, simply set it to 0.
+
+ * If your hashes are NOT unique, you have to assign different sequence numbers,
+ * otherwise the tap protocol considers duplicates as processed.
+ *
+ * If you verify the content of existing ordinals, you may consider to use their ordinals ids (not the ordinals number) as salt.
+ *
+ * @param privKey
+ * @param pubKey
+ * @param privilege_authority_id
+ * @param sha256_hash
+ * @param collection
+ * @param sequence
+ * @param address
+ * @param salt
+ * @returns {Promise<{result: string, test: {valid: boolean, pubRecovered: string, pub: *}}>}
+ */
+async function signVerification(privKey, pubKey, privilege_authority_id, sha256_hash, collection, sequence, address, salt) {
+
+    privKey = Buffer.from(privKey, 'hex');
+    pubKey = Buffer.from(pubKey, 'hex');
+
+    let proto = {
+        p : 'tap',
+        op : 'privilege-auth',
+        sig : null,
+        hash : null,
+        address : address,
+        salt : ''+salt,
+        prv : privilege_authority_id,
+        verify : sha256_hash,
+        col : collection,
+        seq : sequence
+    }
+
+    const msgHash = sha256(proto.prv + '-' + proto.col + '-' + proto.verify + '-'  + proto.seq + '-' + proto.address + '-' + proto.salt);
+    const signature = await secp.signAsync(msgHash, privKey);
+
+    proto.sig = { v : '' + signature.recovery, r : signature.r.toString(), s : signature.s.toString()};
+    proto.hash = Buffer.from(msgHash).toString('hex');
+
+    const test_proto = JSON.parse(JSON.stringify(proto));
+    const test_msgHash = sha256(test_proto.prv + '-' + test_proto.col + '-' + test_proto.verify + '-'  + test_proto.seq + '-' + test_proto.address + '-' + test_proto.salt);
+    const isValid = secp.verify(signature, test_msgHash, pubKey);
+    let test = new secp.Signature(BigInt(proto.sig.r), BigInt(proto.sig.s), parseInt(proto.sig.v));
 
     return {
         test : {
