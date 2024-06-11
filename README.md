@@ -23,5 +23,5 @@ Clone this repository in order to run:
 git clone https://github.com/Trac-Systems//tap-protocol-privilege-auth-boilerplate.git
 cd /tap-protocol-privilege-auth-boilerplate
 npm i
-node token-auth.mjs
+node privilege-auth.mjs
 ```
