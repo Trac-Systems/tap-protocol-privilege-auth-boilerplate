@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "@noble/secp256k1": "^2.1.0",
-    "secp256k1": "^5.0.0"
+    "ethereumjs-util": "^7.1.5",
+    "secp256k1": "^5.0.0",
+    "starkbank-ecdsa": "^1.1.5"
   }
 }

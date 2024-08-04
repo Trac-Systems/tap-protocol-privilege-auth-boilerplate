@@ -137,7 +137,8 @@ async function signAuth(privKey, pubKey, messageKey, message, salt) {
         test : {
             valid : isValid,
             pub : Buffer.from(pubKey).toString('hex'),
-            pubRecovered : test.recoverPublicKey(msgHash).toHex()
+            pubRecovered : test.recoverPublicKey(msgHash).toHex(),
+            compact_signature : test.toCompactHex().toLowerCase()
         },
         result : JSON.stringify(proto)
     }
@@ -156,7 +157,7 @@ async function signAuth(privKey, pubKey, messageKey, message, salt) {
  * @param salt
  * @returns {Promise<{result: string, test: {valid: boolean, pubRecovered: string, pub: *}}>}
  */
-async function signMint(privKey, pubKey, ticker, amount, address, salt) {
+async function signMint(privKey, pubKey, ticker, amount, address, salt, dta = null) {
 
     privKey = Buffer.from(privKey, 'hex');
     pubKey = Buffer.from(pubKey, 'hex');
@@ -174,14 +175,19 @@ async function signMint(privKey, pubKey, ticker, amount, address, salt) {
         }
     }
 
-    const msgHash = sha256(proto.p + '-' + proto.op + '-' + proto.tick + '-' + proto.amt + '-' + proto.prv.address + '-' + proto.prv.salt);
+    if(dta !== null)
+    {
+        proto['dta'] = dta;
+    }
+
+    const msgHash = sha256(proto.p + '-' + proto.op + '-' + proto.tick + '-' + proto.amt + '-' + proto.prv.address + ( dta !== null ? '-' + dta : '' ) + '-' + proto.prv.salt);
     const signature = await secp.signAsync(msgHash, privKey);
 
     proto.prv.sig = { v : '' + signature.recovery, r : signature.r.toString(), s : signature.s.toString()};
     proto.prv.hash = Buffer.from(msgHash).toString('hex');
 
     const test_proto = JSON.parse(JSON.stringify(proto));
-    const test_msgHash = sha256(test_proto.p + '-' + test_proto.op + '-' + test_proto.tick + '-' + test_proto.amt + '-' + test_proto.prv.address + '-' + test_proto.prv.salt);
+    const test_msgHash = sha256(test_proto.p + '-' + test_proto.op + '-' + test_proto.tick + '-' + test_proto.amt + '-' + test_proto.prv.address + ( dta !== null ? '-' + dta : '' ) + '-' + test_proto.prv.salt);
     const isValid = secp.verify(signature, test_msgHash, pubKey);
     let test = new secp.Signature(BigInt(proto.prv.sig.r), BigInt(proto.prv.sig.s), parseInt(proto.prv.sig.v));
 
@@ -189,7 +195,8 @@ async function signMint(privKey, pubKey, ticker, amount, address, salt) {
         test : {
             valid : isValid,
             pub : Buffer.from(pubKey).toString('hex'),
-            pubRecovered : test.recoverPublicKey(msgHash).toHex()
+            pubRecovered : test.recoverPublicKey(msgHash).toHex(),
+            compact_signature : test.toCompactHex().toLowerCase()
         },
         result : JSON.stringify(proto)
     }
@@ -211,7 +218,7 @@ async function signMint(privKey, pubKey, ticker, amount, address, salt) {
  * @param salt
  * @returns {Promise<{result: string, test: {valid: boolean, pubRecovered: string, pub: *}}>}
  */
-async function signDmtMint(privKey, pubKey, ticker, block, dependency, address, salt) {
+async function signDmtMint(privKey, pubKey, ticker, block, dependency, address, salt, dta = null) {
 
     privKey = Buffer.from(privKey, 'hex');
     pubKey = Buffer.from(pubKey, 'hex');
@@ -230,14 +237,19 @@ async function signDmtMint(privKey, pubKey, ticker, block, dependency, address, 
         }
     }
 
-    const msgHash = sha256(proto.p + '-' + proto.op + '-' + proto.tick + '-' + proto.blk + '-' + proto.dep + '-' + proto.prv.address + '-' + proto.prv.salt);
+    if(dta !== null)
+    {
+        proto['dta'] = dta;
+    }
+
+    const msgHash = sha256(proto.p + '-' + proto.op + '-' + proto.tick + '-' + proto.blk + '-' + proto.dep + '-' + proto.prv.address + ( dta !== null ? '-' + dta : '' ) + '-' + proto.prv.salt);
     const signature = await secp.signAsync(msgHash, privKey);
 
     proto.prv.sig = { v : '' + signature.recovery, r : signature.r.toString(), s : signature.s.toString()};
     proto.prv.hash = Buffer.from(msgHash).toString('hex');
 
     const test_proto = JSON.parse(JSON.stringify(proto));
-    const test_msgHash = sha256(test_proto.p + '-' + test_proto.op + '-' + test_proto.tick + '-' + test_proto.blk + '-' + test_proto.dep + '-' + test_proto.prv.address + '-' + test_proto.prv.salt);
+    const test_msgHash = sha256(test_proto.p + '-' + test_proto.op + '-' + test_proto.tick + '-' + test_proto.blk + '-' + test_proto.dep + '-' + test_proto.prv.address + ( dta !== null ? '-' + dta : '' ) + '-' + test_proto.prv.salt);
     const isValid = secp.verify(signature, test_msgHash, pubKey);
     let test = new secp.Signature(BigInt(proto.prv.sig.r), BigInt(proto.prv.sig.s), parseInt(proto.prv.sig.v));
 
@@ -245,7 +257,8 @@ async function signDmtMint(privKey, pubKey, ticker, block, dependency, address, 
         test : {
             valid : isValid,
             pub : Buffer.from(pubKey).toString('hex'),
-            pubRecovered : test.recoverPublicKey(msgHash).toHex()
+            pubRecovered : test.recoverPublicKey(msgHash).toHex(),
+            compact_signature : test.toCompactHex().toLowerCase()
         },
         result : JSON.stringify(proto)
     }
@@ -314,7 +327,8 @@ async function signVerification(privKey, pubKey, privilege_authority_id, sha256_
         test : {
             valid : isValid,
             pub : Buffer.from(pubKey).toString('hex'),
-            pubRecovered : test.recoverPublicKey(msgHash).toHex()
+            pubRecovered : test.recoverPublicKey(msgHash).toHex(),
+            compact_signature : test.toCompactHex().toLowerCase()
         },
         result : JSON.stringify(proto)
     }
