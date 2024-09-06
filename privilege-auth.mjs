@@ -209,7 +209,7 @@ async function signMint(privKey, pubKey, ticker, amount, address, salt, dta = nu
  * This is important if you intend to re-index your authority's indexer. This also means the authority has to store which message hash has been sent already and with which nonce.
  * TAP indexers will ignore existing message hashes as they are only valid once.
  *
- * Pass an empty string to "deployment" if you intend to sign a blockdrop.
+ * Use is_blockdrop true/false to signal this is a blockdrop mint. If set to true, no dep field will be generated but you still will have to pass the deployment inscription id for signing the hash.
  *
  * @param privKey
  * @param pubKey
