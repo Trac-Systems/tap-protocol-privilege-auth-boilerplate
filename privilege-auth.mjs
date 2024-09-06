@@ -44,6 +44,7 @@ const dmtMintResult = await signDmtMint(
     'nat',
     190002,
     '825e287bb7dd163ed633110e31bc6abb6c80815ca68b7dd3cc71d729ecaaa3dci0',
+    false,
     'tb1pf9jluy2g797290uq5nutqm2yuynds6uf868ytc37nht53c5j8w3s7nfta7',
     Math.random()
 )
@@ -215,10 +216,11 @@ async function signMint(privKey, pubKey, ticker, amount, address, salt, dta = nu
  * @param ticker
  * @param block
  * @param deployment
+ * @param is_blockdrop
  * @param salt
  * @returns {Promise<{result: string, test: {valid: boolean, pubRecovered: string, pub: *}}>}
  */
-async function signDmtMint(privKey, pubKey, ticker, block, deployment, address, salt, dta = null) {
+async function signDmtMint(privKey, pubKey, ticker, block, deployment, is_blockdrop, address, salt, dta = null) {
 
     privKey = Buffer.from(privKey, 'hex');
     pubKey = Buffer.from(pubKey, 'hex');
@@ -237,7 +239,7 @@ async function signDmtMint(privKey, pubKey, ticker, block, deployment, address, 
         }
     }
 
-    if(deployment === '')
+    if(is_blockdrop === '')
     {
         delete proto.dep;
     }
