@@ -254,7 +254,7 @@ async function signDmtMint(privKey, pubKey, ticker, block, deployment, address, 
     proto.prv.hash = Buffer.from(msgHash).toString('hex');
 
     const test_proto = JSON.parse(JSON.stringify(proto));
-    const test_msgHash = sha256(test_proto.p + '-' + test_proto.op + '-' + test_proto.tick + '-' + test_proto.blk + '-' + test_proto.dep + '-' + test_proto.prv.address + ( dta !== null ? '-' + dta : '' ) + '-' + test_proto.prv.salt);
+    const test_msgHash = sha256(test_proto.p + '-' + test_proto.op + '-' + test_proto.tick + '-' + test_proto.blk + '-' + deployment + '-' + test_proto.prv.address + ( dta !== null ? '-' + dta : '' ) + '-' + test_proto.prv.salt);
     const isValid = secp.verify(signature, test_msgHash, pubKey);
     let test = new secp.Signature(BigInt(proto.prv.sig.r), BigInt(proto.prv.sig.s), parseInt(proto.prv.sig.v));
 
