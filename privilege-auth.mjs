@@ -206,7 +206,7 @@ async function signMint(privKey, pubKey, ticker, amount, address, salt, dta = nu
  * Creates and signs a mint inscription text for regular tap DMT mints.
  * Please note that instead of a random value, you might want to pass an incrementing number like a nonce.
  * This is important if you intend to re-index your authority's indexer. This also means the authority has to store which message hash has been sent already and with which nonce.
- * TAP indexers will ignoe existing message hashes as they are only valid once.
+ * TAP indexers will ignore existing message hashes as they are only valid once.
  *
  * Pass an empty string to "deployment" if you intend to sign a blockdrop.
  *
