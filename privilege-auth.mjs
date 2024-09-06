@@ -208,7 +208,7 @@ async function signMint(privKey, pubKey, ticker, amount, address, salt, dta = nu
  * This is important if you intend to re-index your authority's indexer. This also means the authority has to store which message hash has been sent already and with which nonce.
  * TAP indexers will ignoe existing message hashes as they are only valid once.
  *
- * TODO: once dep (deployment) is optional for DMT, we need to sign without it and recreate the messageHash accordingly
+ * Pass an empty string to "deployment" if you intend to sign a blockdrop.
  *
  * @param privKey
  * @param pubKey
