@@ -239,7 +239,7 @@ async function signDmtMint(privKey, pubKey, ticker, block, deployment, is_blockd
         }
     }
 
-    if(is_blockdrop === '')
+    if(is_blockdrop)
     {
         delete proto.dep;
     }
