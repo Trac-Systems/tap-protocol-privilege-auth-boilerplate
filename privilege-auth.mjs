@@ -208,17 +208,17 @@ async function signMint(privKey, pubKey, ticker, amount, address, salt, dta = nu
  * This is important if you intend to re-index your authority's indexer. This also means the authority has to store which message hash has been sent already and with which nonce.
  * TAP indexers will ignoe existing message hashes as they are only valid once.
  *
- * TODO: once dep (dependency) is optional for DMT, we need to sign without it and recreate the messageHash accordingly
+ * TODO: once dep (deployment) is optional for DMT, we need to sign without it and recreate the messageHash accordingly
  *
  * @param privKey
  * @param pubKey
  * @param ticker
  * @param block
- * @param dependency
+ * @param deployment
  * @param salt
  * @returns {Promise<{result: string, test: {valid: boolean, pubRecovered: string, pub: *}}>}
  */
-async function signDmtMint(privKey, pubKey, ticker, block, dependency, address, salt, dta = null) {
+async function signDmtMint(privKey, pubKey, ticker, block, deployment, address, salt, dta = null) {
 
     privKey = Buffer.from(privKey, 'hex');
     pubKey = Buffer.from(pubKey, 'hex');
@@ -228,7 +228,7 @@ async function signDmtMint(privKey, pubKey, ticker, block, dependency, address, 
         op : 'dmt-mint',
         tick : ticker.toLowerCase(),
         blk : block,
-        dep : dependency,
+        dep : deployment,
         prv: {
             sig : null,
             hash : null,
@@ -237,12 +237,17 @@ async function signDmtMint(privKey, pubKey, ticker, block, dependency, address, 
         }
     }
 
+    if(deployment === '')
+    {
+        delete proto.dep;
+    }
+
     if(dta !== null)
     {
         proto['dta'] = dta;
     }
 
-    const msgHash = sha256(proto.p + '-' + proto.op + '-' + proto.tick + '-' + proto.blk + '-' + proto.dep + '-' + proto.prv.address + ( dta !== null ? '-' + dta : '' ) + '-' + proto.prv.salt);
+    const msgHash = sha256(proto.p + '-' + proto.op + '-' + proto.tick + '-' + proto.blk + '-' + deployment + '-' + proto.prv.address + ( dta !== null ? '-' + dta : '' ) + '-' + proto.prv.salt);
     const signature = await secp.signAsync(msgHash, privKey);
 
     proto.prv.sig = { v : '' + signature.recovery, r : signature.r.toString(), s : signature.s.toString()};
